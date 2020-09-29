@@ -4,18 +4,25 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 class SVM:
-    def __init__(self, t, size_d):
+    def __init__(self, t, K, size_d):
         self.N = size_d
         self.t = t          # For eq 4 in objective()
         self.K = K          # For eq 4 in objective()
         self.P = 1          # Matrix to be used in objective()
         
     # Implements equations in section 3.3
-    def kernel(self, arg):
+    def kernel(self, arg, x, y, r=1, p=2, sigma=1):
         # Linear kernel K(x,y) = x' * y
         # Polynomial kernel K(x,y) = (x' * y + r)^p
         # Radial Basis Functions kernel K(x,y) = e^-(||x-y||^2 / (2*sigma^2))
-        1
+        if arg == "linear":
+            ret = np.dot(x.T, y)
+        elif arg == "poly":
+            ret = np.exp((np.dot(x.T, y) + r), p)
+        elif arg == "rbf":
+            ret = np.exp( -(np.linalg.norm(x-y)**2) / (2*sigma^2) )
+
+        return ret
 
     # Implements equation 4
     def objective(self, alfa):
@@ -33,7 +40,7 @@ class SVM:
         # ret = minimize(objective, start, bounds=B, constraints=Xc)
         # alpha = ret['x']
         # where B = [(0, C) for b in range(N)]
-        1
+        
     
     # Implements equation 6
     def indicator(self):
