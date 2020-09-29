@@ -4,21 +4,29 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 class SVM:
-    def __init__(self, t, K, size_d):
-        self.N = size_d
-        self.t = t          # For eq 4 in objective()
-        self.K = K          # For eq 4 in objective()
-        self.P = 1          # Matrix to be used in objective()
+    def __init__(self, constraint, inputs, targets, arg):
+         # For eq 4 in objective()
+        self.t = targets                                # -1, 1 for datapoints
+        self.x = inputs                                 # input vector    
+        self.C = constraint
+
+        # Datapoints
+        self.N = inputs.shape[0]                        # Size of input vector
+
+        # Python list comprehension to make a list of items
+        self.P = np.array([[ti*tj*self.kernel(xi, xj) for tj, xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)])             # Matrix in objective()                                
+        self.B =[(0, self.C) for b in range(self.N)]        
+        self.alpha = 1
         
     # Implements equations in section 3.3
-    def kernel(self, arg, x, y, r=1, p=2, sigma=1):
+    def kernel(self, x, y, arg="linear", r=1, p=2, sigma=1):
         # Linear kernel K(x,y) = x' * y
         # Polynomial kernel K(x,y) = (x' * y + r)^p
         # Radial Basis Functions kernel K(x,y) = e^-(||x-y||^2 / (2*sigma^2))
         if arg == "linear":
             ret = np.dot(x.T, y)
         elif arg == "poly":
-            ret = np.exp((np.dot(x.T, y) + r), p)
+            ret = np.power((np.dot(x.T, y) + r), p)
         elif arg == "rbf":
             ret = np.exp( -(np.linalg.norm(x-y)**2) / (2*sigma^2) )
 
@@ -26,7 +34,12 @@ class SVM:
 
     # Implements equation 4
     def objective(self, alfa):
-        1
+        # Alpha values matrix
+        alfa_m = np.dot(alfa, alfa.T)
+        # Objective function
+        sum_tot = np.dot(alfa_m, self.P)
+        # Return sum
+        return np.sum(sum_tot)
 
     # Implements equation 10
     def zerofun(self, alfa):
@@ -40,14 +53,25 @@ class SVM:
         # ret = minimize(objective, start, bounds=B, constraints=Xc)
         # alpha = ret['x']
         # where B = [(0, C) for b in range(N)]
-        
-    
+        1
+
+
     # Implements equation 6
     def indicator(self):
         1
 
+def plot_func(class_a, class_b):
+    for p in class_a:
+        plt.plot(p[0],p[1],'b')
 
+    for p in class_b:
+        plt.plot(p[0],p[1],'r')
+    
+    plt.axis('equal') # Force same scale on both axes plt.savefig(’svmplot.pdf’) # Save a copy in a file plt .show() # Show the plot on the screen
+    plt.show()
+    
 def main():
+    # Data generation
     np.random.seed(100)
     class_a = np.concatenate((np.random.randn(10, 2)*0.2 + [1.5, 0.5], 
                                 np.random.randn(10, 2)*0.2 + [-1.5, 0.5]))
@@ -61,11 +85,15 @@ def main():
     random.shuffle(permute)
     inputs = inputs[permute, :]
     targets = targets[permute]
-    print(targets)
-    print(inputs)
 
+    x = inputs[:, 0]
+    y = inputs[:, 1]
+    alfa = np.ones(x.shape[0]).reshape(x.shape[0], 1)
 
-
+    svm = SVM(1, inputs, targets, arg="linear")
+    ko = svm.kernel(x, y)
+    o = svm.objective(alfa)
+    print(o)
 
 if __name__ == "__main__":
     main()
