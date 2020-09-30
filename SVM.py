@@ -12,6 +12,7 @@ class SVM:
 
         # Datapoints
         self.N = inputs.shape[0]                        # Size of input vector
+        self.zerofunlist = list()
 
         # Python list comprehension to make a list of items
         self.P = np.array([[ti*tj*self.kernel(xi, xj, arg) for tj, xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)])             # Matrix in objective()                                
@@ -52,18 +53,24 @@ class SVM:
             print('Equality constraint not fulfilled')"""
         return np.sum(product)
 
+    # Extracts non zero values and adds indices and values into a dictionary
     def nonZeroExtract(self, alfa):
-        1
+        ind = np.where(alfa > 1.0e-5)
+        dic = {'ind': ind[0],
+                'targets': self.t[ind[0]],
+                'inputs': self.x[ind[0]]}
+        self.zerofunlist.append(dic)
 
     def start(self):
         return np.zeros(self.N)
 
     def minimize(self):
-        # Call to scipy minimize
+        # Constraints
         Xc = {'type':'eq', 'fun':self.zerofun}
-        # where B = [(0, C) for b in range(N)]
+        # Call to scipy minimize
         ret = minimize(self.objective, np.zeros(self.N), bounds=self.B, constraints=Xc)
-        if ret['success'] == True:  
+        if ret['success'] == True: 
+            #print("Minimize success") 
             self.alpha = ret['x']
         else:
             print("Minimize did not find a solution")
@@ -105,14 +112,12 @@ def main():
     y = inputs[:, 1]
     alfa = np.zeros(x.shape[0]).reshape(x.shape[0], 1)
 
-    svm = SVM(None, inputs, targets, arg="linear")
-    print(len(svm.B))
-    print(svm.B)
-    print(svm.alpha.shape, svm.alpha)
-    print("alfa pre: ", svm.alpha)
-    print("zerofun: ", svm.zerofun(alfa))
-    svm.minimize()
-    print("alfa post: ", svm.alpha)
+    svm = SVM(0.5, inputs, targets, arg="linear")
+    for i in range(10):
+        svm.minimize()
+        #print("zerofun: ", svm.zerofun(alfa))
+    #print("alfa post: ", svm.alpha)
+    svm.nonZeroExtract(targets)
     # ko = svm.kernel(x, y)
     # o = svm.objective(alfa)
 
