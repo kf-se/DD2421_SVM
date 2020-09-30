@@ -1,3 +1,6 @@
+#!/usr/bin/env python 
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import random, math
 from scipy.optimize import minimize
@@ -63,12 +66,14 @@ class SVM:
                 'targets': self.t[ind[0]],
                 'inputs': self.x[ind[0]]}
         self.zerofunlist.append(dic)
+        return self.zerofunlist
 
     def calculate_b(self, alfa, s, t_s):
         # sum(alfa_i*t_i*K(s, x) - t_s)
         temp1 = np.dot(alfa, self.t)
         temp2 = np.dot(temp1, self.kernel(s, self.x)) 
         b = np.sum(temp2 - t_s)
+        return b
 
 
     def minimize(self):
@@ -86,8 +91,10 @@ class SVM:
         return
         
     # Implements equation 6
-    def indicator(self):
-        1
+    def indicator(self, zerofunlist, b):
+        temp1 = np.dot(self.zerofunlist.ind, self.zerofunlist.targets)
+        temp2 = np.dot(temp1, self.kernel(s, self.zerofunlist.inputs)) 
+        ind = np.sum(temp2 - self.b)
 
 def plot_func(class_a, class_b):
     for p in class_a:
