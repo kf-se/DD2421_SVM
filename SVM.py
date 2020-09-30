@@ -74,7 +74,11 @@ class SVM:
         # alfa_i*t_i
         temp1 = np.dot(alfa, self.t)
         # alfa_i*t_i*K(s, x)
+        print(temp1)
         temp2 = np.dot(temp1, self.kernel(s, self.x)) 
+
+
+        #self.P = np.array([[ti*tj*self.kernel(xi, xj) for , xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)]) 
         b = np.sum(temp2 - t_s)
         return b
 
@@ -100,16 +104,25 @@ class SVM:
         ind = np.sum(temp2 - self.b)
         return ind
 
-def plot_func(class_a, class_b):
+def plot_data(class_a, class_b):
     for p in class_a:
-        plt.plot(p[0],p[1],'b')
+        plt.plot(p[0],p[1],'b.')
 
     for p in class_b:
-        plt.plot(p[0],p[1],'r')
+        plt.plot(p[0],p[1],'r.')
     
-    plt.axis('equal') # Force same scale on both axes plt.savefig(’svmplot.pdf’) # Save a copy in a file plt .show() # Show the plot on the screen
-    plt.show()
+    plt.axis('equal') # Force same scale on both axes 
+    plt.savefig('svmplot.pdf') # Save a copy in a file plt .show() 
+    plt.show() # Show the plot on the screen
     
+#def plot_boundary(zerofunlist):
+    #xgrid = np.linspace(−5, 5) 
+    #ygrid = numpy.linspace(−4, 4)
+    #grid = np.array([[indicator(x, y) for x in xgrid] for y in ygrid])
+    #plt.contour(xgrid, ygrid, grid, (−1.0, 0.0, 1.0), colors=(’red’, ’black’, ’blue’), linewidths=(1, 3, 1))
+
+
+
 def main():
     # Data generation
     np.random.seed(100)
@@ -129,16 +142,23 @@ def main():
     x = inputs[:, 0]
     y = inputs[:, 1]
     alfa = np.zeros(x.shape[0]).reshape(x.shape[0], 1)
-
+    
+    # Support Vector Machine
     svm = SVM(0.5, inputs, targets, "linear")
     for i in range(10):
         svm.minimize()
         #print("zerofun: ", svm.zerofun(alfa))
     #print("alfa post: ", svm.alpha)
-    svm.nonZeroExtract(targets)
+    zerofunlist = svm.nonZeroExtract(targets)
+    sv = zerofunlist[0]['inputs']
+    sv_targets = zerofunlist[0]['targets']
+    #print(sv)
+    b = svm.calculate_b(alfa,sv[0],sv_targets[0])
+    #indicator(zerofunlist,)
+    #plot_data(class_a, class_b)
     # ko = svm.kernel(x, y)
     # o = svm.objective(alfa)
-
+ 
 
 if __name__ == "__main__":
     main()
