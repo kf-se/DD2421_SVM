@@ -74,9 +74,8 @@ class SVM:
     def calculate_b(self, alfa, s_v, ts_v):
         # sum(alfa_i*t_i*K(s, x) - t_s)
         # alfa_i*t_i
-        gg = [[a_i*t_i*self.kernel(s_j, x_i) - ts_j for a_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s_j, ts_j in zip(s_v, ts_v)]
-        print(gg)
-        b = np.sum(gg)
+        b_list = [[a_i*t_i*self.kernel(s_j, x_i) - ts_j for a_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s_j, ts_j in zip(s_v, ts_v)]
+        b = np.sum(b_list)
         return b
 
     def minimize(self):
@@ -95,11 +94,9 @@ class SVM:
         
     # Implements equation 6
     def indicator(self, zerofunlist, b, s):
-        i = 0
-        temp1 = np.dot(self.zerofunlist[i]['ind'], self.zerofunlist[i]['targets'])
-        temp2 = np.dot(temp1, self.kernel(s, self.zerofunlist[i]['inputs'])) 
-        ind = np.sum(temp2 - b)
-        return ind
+        # ind(s) = sum(alfa_i*t_i*K(s, x_i) - b)
+        ind_s = [[alfa_i*t_i*self.kernel(s, x_i) for alfa_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s in self.zerofunlist[0]['inputs']] - self.calculate_b
+        return ind_s
 
 def plot_func(class_a, class_b):
     for p in class_a:
@@ -141,20 +138,17 @@ def main():
     temp1 = alfa*t_s
     print(inputs[0:2, 0:2])
     print(np.dot(inputs[0:2, 0:2].T, inputs[0:2, 0:2]))
-    #print("kernel", svm.kernel(inputs[0:1, 0:2], inputs[0:1, 0:2]))
-    
     
     d = svm.calculate_b(alfa, s, t_s)
     print(d)
 
-    for i in range(10):
-        #svm.minimize()
-        #print("zerofun: ", svm.zerofun(alfa))
-        1
-    #print("alfa post: ", svm.alpha)
-    #svm.nonZeroExtract(targets)
-    # ko = svm.kernel(x, y)
-    # o = svm.objective(alfa)
+    svm.nonZeroExtract(np.arange(40))
+    svm.nonZeroExtract(np.arange(40))
+    svm.nonZeroExtract(np.arange(40))
+    print(len(svm.zerofunlist))
+    
+
+ 
 
 
 if __name__ == "__main__":
