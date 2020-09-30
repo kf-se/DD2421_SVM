@@ -14,9 +14,9 @@ class SVM:
         self.N = inputs.shape[0]                        # Size of input vector
 
         # Python list comprehension to make a list of items
-        self.P = np.array([[ti*tj*self.kernel(xi, xj) for tj, xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)])             # Matrix in objective()                                
-        self.B =[(0, self.C) for b in range(self.N)]        
-        self.alpha = 1
+        self.P = np.array([[ti*tj*self.kernel(xi, xj, arg) for tj, xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)])             # Matrix in objective()                                
+        self.B = np.asarray([(0, self.C) for b in range(self.N)])    
+        self.alpha = np.zeros(self.N).reshape(self.N, 1)
         
     # Implements equations in section 3.3
     def kernel(self, x, y, arg="linear", r=1, p=2, sigma=1):
@@ -44,13 +44,13 @@ class SVM:
     # Implements equation 10
     # Takes vector in as a parameter
     def zerofun(self, alfa):
+        product = np.dot(alfa.T, self.t)
 
-        product = np.dot(alfa.T,self.t)
-
-        if np.sum(product)==0:
+        """if np.sum(product)==0:
             return np.sum(product)
         else:
-            print('Equality constraint not fulfilled')
+            print('Equality constraint not fulfilled')"""
+        return np.sum(product)
 
     def nonZeroExtract(self, alfa):
         1
@@ -60,18 +60,17 @@ class SVM:
 
     def minimize(self):
         # Call to scipy minimize
-        Xc = {'type':'eq', 'fun':zerofun()}
-       
-        ret = minimize(objective, start, bounds=B, constraints=Xc)
-        alpha = ret['x']
+        Xc = {'type':'eq', 'fun':self.zerofun}
         # where B = [(0, C) for b in range(N)]
-
-        #1
-        #for b in range(self.N):
-        #    bounds=[(0, None)]
-        #1
-
-
+        ret = minimize(self.objective, np.zeros(self.N), bounds=self.B, constraints=Xc)
+        if ret['success'] == True:  
+            self.alpha = ret['x']
+        else:
+            print("Minimize did not find a solution")
+            return
+       
+        return
+        
     # Implements equation 6
     def indicator(self):
         1
@@ -104,12 +103,19 @@ def main():
 
     x = inputs[:, 0]
     y = inputs[:, 1]
-    alfa = np.ones(x.shape[0]).reshape(x.shape[0], 1)
+    alfa = np.zeros(x.shape[0]).reshape(x.shape[0], 1)
 
-    svm = SVM(1, inputs, targets, arg="linear")
-    ko = svm.kernel(x, y)
-    o = svm.objective(alfa)
-    print(o)
+    svm = SVM(None, inputs, targets, arg="linear")
+    print(len(svm.B))
+    print(svm.B)
+    print(svm.alpha.shape, svm.alpha)
+    print("alfa pre: ", svm.alpha)
+    print("zerofun: ", svm.zerofun(alfa))
+    svm.minimize()
+    print("alfa post: ", svm.alpha)
+    # ko = svm.kernel(x, y)
+    # o = svm.objective(alfa)
+
 
 if __name__ == "__main__":
     main()
