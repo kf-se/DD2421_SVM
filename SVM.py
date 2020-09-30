@@ -16,7 +16,7 @@ class SVM:
         self.kern = arg
 
         # Python list comprehension to make a list of items
-        self.P = np.array([[ti*tj*self.kernel(xi, xj) for tj, xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)])             # Matrix in objective()                                
+        self.P = np.asarray([[ti*tj*self.kernel(xi, xj) for tj, xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)])             # Matrix in objective()                                
         self.B = np.asarray([(0, self.C) for b in range(self.N)])    
         self.alpha = np.zeros(self.N).reshape(self.N, 1)
         
@@ -43,7 +43,7 @@ class SVM:
         # Objective function
         sum_tot = np.dot(alfa_m, self.P)
         # Return sum
-        return np.sum(sum_tot)
+        return np.sum(sum_tot - alfa)
 
     # Implements equation 10
     # Takes vector in as a parameter
@@ -64,9 +64,12 @@ class SVM:
                 'inputs': self.x[ind[0]]}
         self.zerofunlist.append(dic)
 
-    def calculate_b(self, alfa, s):
+    def calculate_b(self, alfa, s, t_s):
         # sum(alfa_i*t_i*K(s, x) - t_s)
-        1
+        temp1 = np.dot(alfa, self.t)
+        temp2 = np.dot(temp1, self.kernel(s, self.x)) 
+        b = np.sum(temp2 - t_s)
+
 
     def minimize(self):
         # Constraints
