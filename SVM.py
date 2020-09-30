@@ -75,7 +75,7 @@ class SVM:
         # sum(alfa_i*t_i*K(s, x) - t_s)
         # alfa_i*t_i
         gg = [[a_i*t_i*self.kernel(s_j, x_i) - ts_j for a_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s_j, ts_j in zip(s_v, ts_v)]
-        print(gg)
+        #print(gg)
         b = np.sum(gg)
         return b
 
@@ -96,10 +96,11 @@ class SVM:
     # Implements equation 6
     def indicator(self, zerofunlist, b, s):
         i = 0
-        temp1 = np.dot(self.zerofunlist[i]['ind'], self.zerofunlist[i]['targets'])
-        temp2 = np.dot(temp1, self.kernel(s, self.zerofunlist[i]['inputs'])) 
-        ind = np.sum(temp2 - b)
-        return ind
+        #temp1 = np.dot(self.zerofunlist[i]['ind'], self.zerofunlist[i]['targets'])
+        gg = [[a_i*t_i*self.kernel(s_j, x_i) - b for a_i, t_i, x_i in zip(self.zerofunlist[i]['ind'], self.zerofunlist[i]['targets'], self.x)] for s_j in s]
+        #temp2 = np.dot(temp1, self.kernel(s, self.zerofunlist[i]['inputs'])) 
+        #ind = np.sum(temp2 - b)
+        return gg
 
 def plot_func(class_a, class_b):
     for p in class_a:
