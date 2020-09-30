@@ -64,19 +64,24 @@ class SVM:
     # Extracts support vectors referred to as s in lab doc
     def nonZeroExtract(self, alfa):
         ind = np.where(alfa > 1.0e-5)
+    
         dic = {'ind': ind[0],
                 'targets': self.t[ind[0]],
-                'inputs': self.x[ind[0]]}
+                'inputs': self.x[ind[0]],
+                'alpha': alfa[ind[0]]}
+
         self.zerofunlist.append(dic)
+        
         return self.zerofunlist
+
 
     # Implements equation 7
     def calculate_b(self, alfa, s_v, ts_v):
         # sum(alfa_i*t_i*K(s, x) - t_s)
         # alfa_i*t_i
-        gg = [[a_i*t_i*self.kernel(s_j, x_i) - ts_j for a_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s_j, ts_j in zip(s_v, ts_v)]
-        #print(gg)
-        b = np.sum(gg)
+
+        b_list = [[a_i*t_i*self.kernel(s_j, x_i) - ts_j for a_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s_j, ts_j in zip(s_v, ts_v)]
+        b = np.sum(b_list)
         return b
 
     def minimize(self):
@@ -87,6 +92,7 @@ class SVM:
         if ret['success'] == True: 
             #print("Minimize success") 
             self.alpha = ret['x']
+            #print(self.alpha)
         else:
             print("Minimize did not find a solution")
             return
@@ -95,12 +101,9 @@ class SVM:
         
     # Implements equation 6
     def indicator(self, zerofunlist, b, s):
-        i = 0
-        #temp1 = np.dot(self.zerofunlist[i]['ind'], self.zerofunlist[i]['targets'])
-        gg = [[a_i*t_i*self.kernel(s_j, x_i) - b for a_i, t_i, x_i in zip(self.zerofunlist[i]['ind'], self.zerofunlist[i]['targets'], self.x)] for s_j in s]
-        #temp2 = np.dot(temp1, self.kernel(s, self.zerofunlist[i]['inputs'])) 
-        #ind = np.sum(temp2 - b)
-        return gg
+        # ind(s) = sum(alfa_i*t_i*K(s, x_i) - b)
+        ind_s = [[alfa_i*t_i*self.kernel(s, x_i) for alfa_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s in self.zerofunlist[0]['inputs']] - self.calculate_b
+        return ind_s
 
 def plot_func(class_a, class_b):
     for p in class_a:
@@ -111,6 +114,14 @@ def plot_func(class_a, class_b):
     
     plt.axis('equal') # Force same scale on both axes plt.savefig(’svmplot.pdf’) # Save a copy in a file plt .show() # Show the plot on the screen
     plt.show()
+    
+def plot_boundary():
+    xgrid=np.linspace(-5, 5)
+    ygrid=np.linspace(-4, 4)
+    grid=np.array([[indicator(x, y) for x in xgrid ] for y in ygrid])
+    plt . contour ( xgrid , ygrid , grid , (-1, 0.0, 1.0),
+    colors=('red', 'black', 'blue'), linewidths=(1, 3, 1))
+    
     
 def main():
     # Data generation
@@ -139,23 +150,23 @@ def main():
 
     svm = SVM(0.5, inputs, targets, "linear")
 
-    temp1 = alfa*t_s
-    print(inputs[0:2, 0:2])
-    print(np.dot(inputs[0:2, 0:2].T, inputs[0:2, 0:2]))
-    #print("kernel", svm.kernel(inputs[0:1, 0:2], inputs[0:1, 0:2]))
+    #temp1 = alfa*t_s
+    #print(inputs[0:2, 0:2])
+    #print(np.dot(inputs[0:2, 0:2].T, inputs[0:2, 0:2]))
     
-    
+    n = svm.nonZeroExtract(alfa)
+    print(n)
+    m = svm.zerofun(alfa)
+    print(m)
+    #print(d)
     d = svm.calculate_b(alfa, s, t_s)
-    print(d)
+    svm.nonZeroExtract(np.arange(40))
+    #svm.nonZeroExtract(np.arange(40))
+    #svm.nonZeroExtract(np.arange(40))
+    #print(len(svm.zerofunlist))
+    
 
-    for i in range(10):
-        #svm.minimize()
-        #print("zerofun: ", svm.zerofun(alfa))
-        1
-    #print("alfa post: ", svm.alpha)
-    #svm.nonZeroExtract(targets)
-    # ko = svm.kernel(x, y)
-    # o = svm.objective(alfa)
+ 
 
 
 if __name__ == "__main__":
