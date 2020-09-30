@@ -64,12 +64,15 @@ class SVM:
                 'inputs': self.x[ind[0]]}
         self.zerofunlist.append(dic)
 
+    # Implements equation 7
     def calculate_b(self, alfa, s, t_s):
         # sum(alfa_i*t_i*K(s, x) - t_s)
+        # alfa_i*t_i
         temp1 = np.dot(alfa, self.t)
+        # alfa_i*t_i*K(s, x)
         temp2 = np.dot(temp1, self.kernel(s, self.x)) 
         b = np.sum(temp2 - t_s)
-
+        return b
 
     def minimize(self):
         # Constraints
@@ -82,7 +85,7 @@ class SVM:
         else:
             print("Minimize did not find a solution")
             return
-        
+
         return
         
     # Implements equation 6
