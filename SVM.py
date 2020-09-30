@@ -74,7 +74,9 @@ class SVM:
     def calculate_b(self, alfa, s_v, ts_v):
         # sum(alfa_i*t_i*K(s, x) - t_s)
         # alfa_i*t_i
-        gg = [[a_i*t_i*self.Kernel(s_j, x_i) - ts_j for a_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s_j, ts_j in zip(s_v, ts_v)]
+        gg = [[a_i*t_i*self.kernel(s_j, x_i) - ts_j for a_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s_j, ts_j in zip(s_v, ts_v)]
+        print(gg)
+        b = np.sum(gg)
         return b
 
     def minimize(self):
@@ -129,7 +131,7 @@ def main():
     x = inputs[:, 0]
     y = inputs[:, 1]
 
-    s = 2
+    s = x
     t_s = targets
     N = targets.shape[0]
     alfa = np.zeros(x.shape[0]).reshape(x.shape[0], 1)
@@ -142,7 +144,8 @@ def main():
     #print("kernel", svm.kernel(inputs[0:1, 0:2], inputs[0:1, 0:2]))
     
     
-    #svm.calculate_b(alfa, s, t_s)
+    d = svm.calculate_b(alfa, s, t_s)
+    print(d)
 
     for i in range(10):
         #svm.minimize()
