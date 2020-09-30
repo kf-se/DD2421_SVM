@@ -13,25 +13,28 @@ class SVM:
         # Datapoints
         self.N = inputs.shape[0]                        # Size of input vector
         self.zerofunlist = list()
+        self.kern = arg
 
         # Python list comprehension to make a list of items
-        self.P = np.array([[ti*tj*self.kernel(xi, xj, arg) for tj, xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)])             # Matrix in objective()                                
+        self.P = np.array([[ti*tj*self.kernel(xi, xj) for tj, xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)])             # Matrix in objective()                                
         self.B = np.asarray([(0, self.C) for b in range(self.N)])    
         self.alpha = np.zeros(self.N).reshape(self.N, 1)
         
     # Implements equations in section 3.3
-    def kernel(self, x, y, arg="linear", r=1, p=2, sigma=1):
+    def kernel(self, x, y, r=1, p=2, sigma=1):
         # Linear kernel K(x,y) = x' * y
         # Polynomial kernel K(x,y) = (x' * y + r)^p
         # Radial Basis Functions kernel K(x,y) = e^-(||x-y||^2 / (2*sigma^2))
-        if arg == "linear":
+        if self.kern == "linear":
             ret = np.dot(x.T, y)
-        elif arg == "poly":
+        elif self.kern == "poly":
             ret = np.power((np.dot(x.T, y) + r), p)
-        elif arg == "rbf":
+        elif self.kern == "rbf":
             ret = np.exp( -(np.linalg.norm(x-y)**2) / (2*sigma^2) )
-
         return ret
+
+    def start(self):
+        return np.zeros(self.N)
 
     # Implements equation 4
     def objective(self, alfa):
@@ -61,8 +64,9 @@ class SVM:
                 'inputs': self.x[ind[0]]}
         self.zerofunlist.append(dic)
 
-    def start(self):
-        return np.zeros(self.N)
+    def calculate_b(self, alfa, s):
+        # sum(alfa_i*t_i*K(s, x) - t_s)
+        1
 
     def minimize(self):
         # Constraints
@@ -112,7 +116,7 @@ def main():
     y = inputs[:, 1]
     alfa = np.zeros(x.shape[0]).reshape(x.shape[0], 1)
 
-    svm = SVM(0.5, inputs, targets, arg="linear")
+    svm = SVM(0.5, inputs, targets, "linear")
     for i in range(10):
         svm.minimize()
         #print("zerofun: ", svm.zerofun(alfa))
