@@ -8,7 +8,7 @@ class SVM:
          # For eq 4 in objective()
         self.t = targets                                # -1, 1 for datapoints
         self.x = inputs                                 # input vector    
-        self.C = constraint
+        self.C = constraint                             # 
 
         # Datapoints
         self.N = inputs.shape[0]                        # Size of input vector
@@ -42,18 +42,34 @@ class SVM:
         return np.sum(sum_tot)
 
     # Implements equation 10
+    # Takes vector in as a parameter
     def zerofun(self, alfa):
-        1
+
+        product = np.dot(alfa.T,self.t)
+
+        if np.sum(product)==0:
+            return np.sum(product)
+        else:
+            print('Equality constraint not fulfilled')
 
     def nonZeroExtract(self, alfa):
         1
 
+    def start(self):
+        return np.zeros(self.N)
+
     def minimize(self):
         # Call to scipy minimize
-        # ret = minimize(objective, start, bounds=B, constraints=Xc)
-        # alpha = ret['x']
+        Xc = {'type':'eq', 'fun':zerofun()}
+       
+        ret = minimize(objective, start, bounds=B, constraints=Xc)
+        alpha = ret['x']
         # where B = [(0, C) for b in range(N)]
-        1
+
+        #1
+        #for b in range(self.N):
+        #    bounds=[(0, None)]
+        #1
 
 
     # Implements equation 6
