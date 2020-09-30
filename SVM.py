@@ -16,7 +16,7 @@ class SVM:
         self.kern = arg
 
         # Python list comprehension to make a list of items
-        self.P = np.asarray([[ti*tj*self.kernel(xi, xj) for tj, xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)])             # Matrix in objective()                                
+        self.P = np.array([[ti*tj*self.kernel(xi, xj) for tj, xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)])             # Matrix in objective()                                
         self.B = np.asarray([(0, self.C) for b in range(self.N)])    
         self.alpha = np.zeros(self.N).reshape(self.N, 1)
         
@@ -82,7 +82,7 @@ class SVM:
         else:
             print("Minimize did not find a solution")
             return
-       
+        
         return
         
     # Implements equation 6
