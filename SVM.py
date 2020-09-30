@@ -93,9 +93,10 @@ class SVM:
         return
         
     # Implements equation 6
-    def indicator(self, zerofunlist, b):
-        temp1 = np.dot(self.zerofunlist.ind, self.zerofunlist.targets)
-        temp2 = np.dot(temp1, self.kernel(s, self.zerofunlist.inputs)) 
+    def indicator(self, zerofunlist, b, s):
+        i = 0
+        temp1 = np.dot(self.zerofunlist[i]['ind'], self.zerofunlist[i]['targets'])
+        temp2 = np.dot(temp1, self.kernel(s, self.zerofunlist[i]['inputs'])) 
         ind = np.sum(temp2 - self.b)
         return ind
 
