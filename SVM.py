@@ -91,9 +91,9 @@ class SVM:
     # 
     # INPUT:
     # OUTPUT: classification (ind < -1 (class -1) or ind > 1 (class 1))
-    def indicator(self, i):
+    def indicator(self, x, y, i):
         # ind(s) = sum(alfa_i*t_i*K(s, x_i) - b)
-        ind_s = [[alfa_i*t_i*self.kernel(s, x_i) for alfa_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s in self.zerofunlist[i]['inputs']] - self.calculate_b(i)
+        ind_s = [alfa_i*t_i*self.kernel([x, y], x_i) for alfa_i, t_i, x_i in zip(self.zerofunlist[i]['alpha'], self.zerofunlist[i]['targets'], self.zerofunlist[i]['inputs'])] - self.calculate_b(i)
         return ind_s
 
 
@@ -128,22 +128,24 @@ class SVM:
         return
         
 
-def plot_func(class_a, class_b):
+def plot_func(class_a, class_b, svm):
     for p in class_a:
-        plt.plot(p[0],p[1],'b')
+        plt.plot(p[0],p[1],'b.')
 
     for p in class_b:
-        plt.plot(p[0],p[1],'r')
+        plt.plot(p[0],p[1],'r.')
+
+    for p in svm.zerofunlist[0]['inputs']:
+        plt.plot(p[0], p[1], 'g+')
     
     plt.axis('equal') # Force same scale on both axes plt.savefig(’svmplot.pdf’) # Save a copy in a file plt .show() # Show the plot on the screen
     plt.show()
     
-def plot_boundary():
+def plot_boundary(svm, i):
     xgrid=np.linspace(-5, 5)
     ygrid=np.linspace(-4, 4)
-    grid=np.array([[indicator(x, y) for x in xgrid ] for y in ygrid])
-    plt . contour ( xgrid , ygrid , grid , (-1, 0.0, 1.0),
-    colors=('red', 'black', 'blue'), linewidths=(1, 3, 1))
+    grid=np.array([[svm.indicator(x, y, i) for x in xgrid ] for y in ygrid])
+    plt.contour(xgrid, ygrid, grid, (-1.0, 0.0, 1.0), colors=('red', 'black', 'blue'), linewidths=(1, 3, 1))
     
     
 def main():
@@ -187,7 +189,7 @@ def main():
     # Test objective
     print("Objective:", svm.objective(alfa1))
     # Test indicator
-    indicator = svm.indicator(0)
+    indicator = svm.indicator(1, 2, 0)
     print("Indicator", indicator)
     print(indicator.shape)
     print(np.sum(indicator))
@@ -195,8 +197,9 @@ def main():
     print("calculate_b is done")
     # Test minimize 
     svm.minimize()
-    
-    plot_func(class_a, class_b)
+
+    # plot_func(class_a, class_b, svm)
+    plot_boundary(svm, 0)
 
 if __name__ == "__main__":
     main()
