@@ -14,14 +14,14 @@ class SVM:
         self.t = targets.reshape(self.N, 1)             # -1, 1 for datapoints
         self.x = inputs                                 # input vector    
         self.C = constraint                             # 
+        self.B = np.asarray([(0, self.C) for b in range(self.N)]) 
 
         # Datapoints
-        self.zerofunlist = list()
+        self.zerofunlist = dict()
         self.kern = arg
 
         # Python list comprehension to make a list of items
-        self.P = np.array([[ti*tj*self.kernel(xi, xj) for tj, xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)])             # Matrix in objective()                                
-        self.B = np.asarray([(0, self.C) for b in range(self.N)])    
+        self.P = np.array([[ti*tj*self.kernel(xi, xj) for tj, xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)])             # Matrix in objective()                                   
         self.alpha = np.zeros(self.N).reshape(self.N, 1)
         
 
@@ -74,15 +74,15 @@ class SVM:
     # Extracts support vectors referred to as s in lab doc
     # INPUT: vector, result (data after separation)
     # OUTPUT: vector, error (data being missclassified)
-    def nonZeroExtract(self, alfa):
-        ind = np.where(alfa > 1.0e-5)
+    def nonZeroExtract(self):
+        ind = np.where(self.alpha > 1.0e-5)
     
         dic = {'ind': ind[0],
                 'targets': self.t[ind[0]],
                 'inputs': self.x[ind[0]],
-                'alpha': alfa[ind[0]]}
+                'alpha': self.alpha[ind[0]]}
 
-        self.zerofunlist.append(dic)
+        self.zerofunlist = dic
         
         return self.zerofunlist
 
@@ -91,9 +91,9 @@ class SVM:
     # 
     # INPUT:
     # OUTPUT: classification (ind < -1 (class -1) or ind > 1 (class 1))
-    def indicator(self, x, y, i):
+    def indicator(self, x, y):
         # ind(s) = sum(alfa_i*t_i*K(s, x_i) - b)
-        ind_s = [alfa_i*t_i*self.kernel([x, y], x_i) for alfa_i, t_i, x_i in zip(self.zerofunlist[i]['alpha'], self.zerofunlist[i]['targets'], self.zerofunlist[i]['inputs'])] - self.calculate_b(i)
+        ind_s = [alfa_i*t_i*self.kernel([x, y], x_i) for alfa_i, t_i, x_i in zip(self.zerofunlist['alpha'], self.zerofunlist['targets'], self.zerofunlist['inputs'])] - self.calculate_b(i)
         return ind_s
 
 
@@ -101,10 +101,10 @@ class SVM:
     # Calculate b used in indicator
     # INPUT: vector 
     # OUTPUT: scalar, b
-    def calculate_b(self, i):
+    def calculate_b(self):
         # sum(alfa_i*t_i*K(s, x) - t_s)
         # alfa_i*t_i
-        b_list = [[a_i*t_i*self.kernel(s_j, x_i) - ts_j for a_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s_j, ts_j in zip(self.zerofunlist[i]['inputs'], self.zerofunlist[i]['targets'])]
+        b_list = [[a_i*t_i*self.kernel(s_j, x_i) - ts_j for a_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s_j, ts_j in zip(self.zerofunlist['inputs'], self.zerofunlist['targets'])]
         b = np.sum(b_list)
         return b
 
@@ -135,7 +135,7 @@ def plot_func(class_a, class_b, svm):
     for p in class_b:
         plt.plot(p[0],p[1],'r.')
 
-    for p in svm.zerofunlist[0]['inputs']:
+    for p in svm.zerofunlist['inputs']:
         plt.plot(p[0], p[1], 'g+')
     
     plt.axis('equal') # Force same scale on both axes plt.savefig(’svmplot.pdf’) # Save a copy in a file plt .show() # Show the plot on the screen
@@ -176,7 +176,7 @@ def main():
 
     svm = SVM(0.5, inputs, targets, "linear")
 
-    print("alfa:", alfa1)
+    """print("alfa:", alfa1)
     print("targets:", targets, "sum of targets", np.sum(targets))
     print("inputs:", inputs)
     # Test zerofun
@@ -196,10 +196,16 @@ def main():
     # Test calculate_b
     print("calculate_b is done")
     # Test minimize 
-    svm.minimize()
+    # svm.minimize()"""
 
-    # plot_func(class_a, class_b, svm)
-    plot_boundary(svm, 0)
+    svm2 = SVM(None, inputs, targets, "linear")
+    svm2.minimize()
+    print("alpha", svm2.alpha)
+    svm2.nonZeroExtract()
+    print(svm2.zerofunlist)
+
+    plot_func(class_a, class_b, svm2)
+    # plot_boundary(svm, 0)
 
 if __name__ == "__main__":
     main()
