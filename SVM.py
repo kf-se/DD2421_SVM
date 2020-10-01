@@ -41,6 +41,9 @@ class SVM:
         return np.zeros(self.N)
 
     # Implements equation 4
+    # Used in minimize
+    # INPUT: vector
+    # OUTPUT: scalar
     def objective(self, alfa):
         # Alpha values matrix
         alfa_m = np.dot(alfa, alfa.T)
@@ -51,6 +54,8 @@ class SVM:
 
     # Implements equation 10
     # Takes vector in as a parameter
+    # INPUT: vector (data before separation)
+    # OUTPUT: scalar, value that should be constrained to zero
     def zerofun(self, alfa):
         product = alfa*self.t
 
@@ -62,6 +67,8 @@ class SVM:
 
     # Extracts non zero values and adds indices and values into a dictionary
     # Extracts support vectors referred to as s in lab doc
+    # INPUT: vector, result (data after separation)
+    # OUTPUT: vector, error (data being missclassified)
     def nonZeroExtract(self, alfa):
         ind = np.where(alfa > 1.0e-5)
     
@@ -76,6 +83,9 @@ class SVM:
 
 
     # Implements equation 7
+    # Calculate b used in indicator
+    # INPUT: vector 
+    # OUTPUT: scalar, b
     def calculate_b(self, alfa, s_v, ts_v):
         # sum(alfa_i*t_i*K(s, x) - t_s)
         # alfa_i*t_i
@@ -84,11 +94,14 @@ class SVM:
         b = np.sum(b_list)
         return b
 
+    # minimizes objective
+    # INPUT:
+    # OUTPUT: vector  
     def minimize(self):
         # Constraints
-        Xc = {'type':'eq', 'fun':self.zerofun}
+        XC = {'type':'eq', 'fun':self.zerofun}
         # Call to scipy minimize
-        ret = minimize(self.objective, np.zeros(self.N), bounds=self.B, constraints=Xc)
+        ret = minimize(self.objective, np.zeros(self.N), bounds=self.B, constraints=XC)
         if ret['success'] == True: 
             #print("Minimize success") 
             self.alpha = ret['x']
@@ -100,6 +113,9 @@ class SVM:
         return
         
     # Implements equation 6
+    # 
+    # INPUT:
+    # OUTPUT: classification (ind < -1 (class -1) or ind > 1 (class 1))
     def indicator(self, zerofunlist, b, s):
         # ind(s) = sum(alfa_i*t_i*K(s, x_i) - b)
         ind_s = [[alfa_i*t_i*self.kernel(s, x_i) for alfa_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s in self.zerofunlist[0]['inputs']] - self.calculate_b
@@ -153,7 +169,9 @@ def main():
     #temp1 = alfa*t_s
     #print(inputs[0:2, 0:2])
     #print(np.dot(inputs[0:2, 0:2].T, inputs[0:2, 0:2]))
-    
+    b = svm.calculate_b(alfa, s, t_s)
+    zerofunlist = svm.
+
     n = svm.nonZeroExtract(alfa)
     print(n)
     m = svm.zerofun(alfa)
