@@ -106,6 +106,7 @@ class SVM:
             #print("Minimize success") 
             self.alpha = ret['x']
             #print(self.alpha)
+            return (self.alphas)
         else:
             print("Minimize did not find a solution")
             return
@@ -170,7 +171,6 @@ def main():
     #print(inputs[0:2, 0:2])
     #print(np.dot(inputs[0:2, 0:2].T, inputs[0:2, 0:2]))
     b = svm.calculate_b(alfa, s, t_s)
-    zerofunlist = svm.
 
     n = svm.nonZeroExtract(alfa)
     print(n)
