@@ -24,6 +24,7 @@ class SVM:
         self.B = np.asarray([(0, self.C) for b in range(self.N)])    
         self.alpha = np.zeros(self.N).reshape(self.N, 1)
         
+
     # Implements equations in section 3.3
     def kernel(self, x, y, r=1, p=2, sigma=1):
         # Linear kernel K(x,y) = x' * y
@@ -37,8 +38,10 @@ class SVM:
             ret = np.exp( -(np.linalg.norm(x-y)**2) / (2*sigma^2) )
         return ret
 
+
     def start(self):
         return np.zeros(self.N)
+
 
     # Implements equation 4
     # Used in minimize
@@ -52,6 +55,7 @@ class SVM:
         # Return sum
         return np.sum(sum_tot - alfa)
 
+
     # Implements equation 10
     # Takes vector in as a parameter
     # INPUT: vector (data before separation)
@@ -64,6 +68,7 @@ class SVM:
         else:
             print('Equality constraint not fulfilled')"""
         return np.sum(product)
+
 
     # Extracts non zero values and adds indices and values into a dictionary
     # Extracts support vectors referred to as s in lab doc
@@ -82,17 +87,27 @@ class SVM:
         return self.zerofunlist
 
 
+    # Implements equation 6
+    # 
+    # INPUT:
+    # OUTPUT: classification (ind < -1 (class -1) or ind > 1 (class 1))
+    def indicator(self, i):
+        # ind(s) = sum(alfa_i*t_i*K(s, x_i) - b)
+        ind_s = [[alfa_i*t_i*self.kernel(s, x_i) for alfa_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s in self.zerofunlist[i]['inputs']] - self.calculate_b(i)
+        return ind_s
+
+
     # Implements equation 7
     # Calculate b used in indicator
     # INPUT: vector 
     # OUTPUT: scalar, b
-    def calculate_b(self, alfa, s_v, ts_v):
+    def calculate_b(self, i):
         # sum(alfa_i*t_i*K(s, x) - t_s)
         # alfa_i*t_i
-
-        b_list = [[a_i*t_i*self.kernel(s_j, x_i) - ts_j for a_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s_j, ts_j in zip(s_v, ts_v)]
+        b_list = [[a_i*t_i*self.kernel(s_j, x_i) - ts_j for a_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s_j, ts_j in zip(self.zerofunlist[i]['inputs'], self.zerofunlist[i]['targets'])]
         b = np.sum(b_list)
         return b
+
 
     # minimizes objective
     # INPUT:
@@ -112,14 +127,6 @@ class SVM:
 
         return
         
-    # Implements equation 6
-    # 
-    # INPUT:
-    # OUTPUT: classification (ind < -1 (class -1) or ind > 1 (class 1))
-    def indicator(self, zerofunlist, b, s):
-        # ind(s) = sum(alfa_i*t_i*K(s, x_i) - b)
-        ind_s = [[alfa_i*t_i*self.kernel(s, x_i) for alfa_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s in self.zerofunlist[0]['inputs']] - self.calculate_b
-        return ind_s
 
 def plot_func(class_a, class_b):
     for p in class_a:
@@ -163,29 +170,33 @@ def main():
     t_s = targets
     N = targets.shape[0]
     alfa = np.zeros(x.shape[0]).reshape(x.shape[0], 1)
+    alfa1 = np.arange(N).reshape(N,1)
 
     svm = SVM(0.5, inputs, targets, "linear")
 
-    #temp1 = alfa*t_s
-    #print(inputs[0:2, 0:2])
-    #print(np.dot(inputs[0:2, 0:2].T, inputs[0:2, 0:2]))
-    b = svm.calculate_b(alfa, s, t_s)
-    zerofunlist = svm.
-
-    n = svm.nonZeroExtract(alfa)
-    print(n)
-    m = svm.zerofun(alfa)
-    print(m)
-    #print(d)
-    d = svm.calculate_b(alfa, s, t_s)
-    svm.nonZeroExtract(np.arange(40))
-    #svm.nonZeroExtract(np.arange(40))
-    #svm.nonZeroExtract(np.arange(40))
-    #print(len(svm.zerofunlist))
+    print("alfa:", alfa1)
+    print("targets:", targets, "sum of targets", np.sum(targets))
+    print("inputs:", inputs)
+    # Test zerofun
+    print("zerofun:", svm.zerofun(alfa))
+    # Test nonZeroExtract
+    print("nonZeroExtract:", svm.nonZeroExtract(np.arange(10)))
+    print("Nonzerolist:", svm.zerofunlist)
+    # Test Kernel
+    print("Kernel:", svm.kernel(inputs[0, :], inputs[1, :]),"of point a:", inputs[0, :], "and b:", inputs[1, :])
+    # Test objective
+    print("Objective:", svm.objective(alfa1))
+    # Test indicator
+    indicator = svm.indicator(0)
+    print("Indicator", indicator)
+    print(indicator.shape)
+    print(np.sum(indicator))
+    # Test calculate_b
+    print("calculate_b is done")
+    # Test minimize 
+    svm.minimize()
     
-
- 
-
+    plot_func(class_a, class_b)
 
 if __name__ == "__main__":
     main()
