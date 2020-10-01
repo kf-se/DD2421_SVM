@@ -121,6 +121,7 @@ class SVM:
             #print("Minimize success") 
             self.alpha = ret['x']
             #print(self.alpha)
+            return (self.alphas)
         else:
             print("Minimize did not find a solution")
             return
@@ -176,7 +177,32 @@ def main():
 
     svm = SVM(0.5, inputs, targets, "linear")
 
+<<<<<<< HEAD
     """print("alfa:", alfa1)
+=======
+<<<<<<< HEAD
+    #temp1 = alfa*t_s
+    #print(inputs[0:2, 0:2])
+    #print(np.dot(inputs[0:2, 0:2].T, inputs[0:2, 0:2]))
+    b = svm.calculate_b(alfa, s, t_s)
+
+    n = svm.nonZeroExtract(alfa)
+    print(n)
+    m = svm.zerofun(alfa)
+    print(m)
+    #print(d)
+    d = svm.calculate_b(alfa, s, t_s)
+    svm.nonZeroExtract(np.arange(40))
+    #svm.nonZeroExtract(np.arange(40))
+    #svm.nonZeroExtract(np.arange(40))
+    #print(len(svm.zerofunlist))
+    
+
+ 
+
+=======
+    print("alfa:", alfa1)
+>>>>>>> 2f79d6a90639115f0e7c493c324f04acffec6ff9
     print("targets:", targets, "sum of targets", np.sum(targets))
     print("inputs:", inputs)
     # Test zerofun
@@ -198,6 +224,7 @@ def main():
     # Test minimize 
     # svm.minimize()"""
 
+<<<<<<< HEAD
     svm2 = SVM(None, inputs, targets, "linear")
     svm2.minimize()
     print("alpha", svm2.alpha)
@@ -206,6 +233,11 @@ def main():
 
     plot_func(class_a, class_b, svm2)
     # plot_boundary(svm, 0)
+=======
+    # plot_func(class_a, class_b, svm)
+    plot_boundary(svm, 0)
+>>>>>>> 462469151bd57007b3a65979ccf8adbdbc48c39a
+>>>>>>> 2f79d6a90639115f0e7c493c324f04acffec6ff9
 
 if __name__ == "__main__":
     main()
