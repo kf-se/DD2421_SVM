@@ -7,7 +7,7 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 class SVM:
-    def __init__(self, constraint, inputs, targets, arg):
+    def __init__(self, constraint, inputs, targets, arg, r, p ,sigma):
         self.N = inputs.shape[0]                        # Size of input vector
 
          # For eq 4 in objective()
@@ -19,6 +19,9 @@ class SVM:
         # Datapoints
         self.zerofunlist = dict()
         self.kern = arg
+        self.r = r
+        self.p = p
+        self.sigma = sigma
 
         # Python list comprehension to make a list of items
         self.alpha = np.zeros(self.N).reshape(self.N, 1)
@@ -30,19 +33,19 @@ class SVM:
                 k = self.kernel(inputs[i], inputs[j])
                 A.append(targets[i]*targets[j]*k)
             self.P2.append(np.array(A))
-        
+
 
     # Implements equations in section 3.3
-    def kernel(self, x, y, r=1, p=2, sigma=1):
+    def kernel(self, x, y):
         # Linear kernel K(x,y) = x' * y
         if self.kern == "linear":
             ret = np.dot(x,y)
         # Polynomial kernel K(x,y) = (x' * y + r)^p
         elif self.kern == "poly":
-            ret = np.power((np.dot(x, y) + r), p)
+            ret = np.power((np.dot(x, y) + self.r), self.p)
         # Radial Basis Functions kernel K(x,y) = e^-(||x-y||^2 / (2*sigma^2))
         elif self.kern == "rbf":
-            ret = np.exp( -(np.linalg.norm(x-y)**2) / (2*sigma**2) )
+            ret = np.exp( -(np.linalg.norm(x-y)**2) / (2*self.sigma**2) )
         
         return ret
 
@@ -159,7 +162,7 @@ class SVM:
             
         
 
-def plot_func(class_a, class_b, svm):
+def plot_func(class_a, class_b, svm, C):
     for p in class_a:
         plt.plot(p[0],p[1],'b.')
 
@@ -172,12 +175,13 @@ def plot_func(class_a, class_b, svm):
     plt.axis('equal') # Force same scale on both axes plt.savefig(’svmplot.pdf’) # Save a copy in a file plt .show() # Show the plot on the screen
     
     #if(pltshow = True):
+    figure = plt.show()
     xgrid=np.linspace(-5, 5)
     ygrid=np.linspace(-4, 4)
     grid=np.array([[svm.indicator(x, y) for x in xgrid ] for y in ygrid]).reshape(len(xgrid), len(xgrid))
     #print("xgrid", xgrid,"\nygrid", ygrid,"\ngrid", grid.shape)
-    plt.contour(xgrid, ygrid, grid, (-1.0, 0.0, 1.0), colors=('red', 'black', 'blue'), linewidths=(1, 3, 1))
-    
+    figure.contour(xgrid, ygrid, grid, (-1.0, 0.0, 1.0), colors=('red', 'black', 'blue'), linewidths=(1, 3, 1))
+    figure.legend(C)
     plt.show()
     
 def main():
@@ -185,7 +189,7 @@ def main():
     np.random.seed(100)
     class_a = np.concatenate((np.random.randn(10, 2)*0.2 + [1.5, 0.5], 
                                 np.random.randn(10, 2)*0.2 + [-1.5, 0.5]))
-    class_b = np.random.randn(20, 2) * 0.2 + [0.0, -0.5]
+    class_b = np.random.randn(20, 2) * 0.2 + [0, -0.5]
     
     inputs = np.concatenate((class_a, class_b))
     targets = np.concatenate((np.ones(class_a.shape[0]), -np.ones(class_b.shape[0])))
@@ -205,17 +209,14 @@ def main():
     N = targets.shape[0]
     alfa = np.zeros(x.shape[0]).reshape(x.shape[0], 1)
     alfa1 = np.arange(N).reshape(N,1)
+    C = None
 
-    svm2 = SVM(10000000, inputs, targets, "linear")
+    svm2 = SVM(C, inputs, targets, "linear", 1, 9, 1)
+    
     ret = svm2.minimize()
     svm2.nonZeroExtract()
     print("zerofun", svm2.zerofunlist['alpha'])
-    #print(svm2.zerofunlist['targets'])
-    #print(svm2.zerofunlist)
-    #svm2.calculate_b()
-    #svm2.nonzeroextract()
-    plot_func(class_a, class_b, svm2)
-    #plot_boundary(svm2)
+    plot_func(class_a, class_b, svm2, C)
 
 
 if __name__ == "__main__":
