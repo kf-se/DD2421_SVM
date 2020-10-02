@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 class SVM:
     def __init__(self, constraint, inputs, targets, arg):
+        # Global parameters
         self.N = inputs.shape[0]                        # Size of input vector
 
          # For eq 4 in objective()
@@ -20,10 +21,15 @@ class SVM:
         self.kern = arg
 
         # Python list comprehension to make a list of items
-        self.P = np.array([[ti*tj*self.kernel(xi, xj) for tj, xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)])             # Matrix in objective()                                
+        self.P = np.array([[ti*tj*self.kernel(xi, xj) for tj, xj in zip(self.t, self.x)] for ti, xi in zip(self.t, self.x)])    # Should be NxN-matrix
+        # print(np.shape(self.P))                         
+      
+        # Matrix in objective()                                
         self.B = np.asarray([(0, self.C) for b in range(self.N)])    
         self.alpha = np.zeros(self.N).reshape(self.N, 1)
         
+        # start vector
+        self.start = np.zeros(self.N)
 
     # Implements equations in section 3.3
     def kernel(self, x, y, r=1, p=2, sigma=1):
@@ -39,8 +45,8 @@ class SVM:
         return ret
 
 
-    def start(self):
-        return np.zeros(self.N)
+    # def start(self):
+        # return np.zeros(self.N)
 
 
     # Implements equation 4
@@ -49,12 +55,20 @@ class SVM:
     # OUTPUT: scalar
     def objective(self, alfa):
         # Alpha values matrix
-        alfa_m = np.dot(alfa, alfa.T)
-        # Objective function
-        sum_tot = np.dot(alfa_m, self.P)
-        # Return sum
-        return np.sum(sum_tot - alfa)
 
+        alfa_m = np.dot(alfa, alfa.T)                
+        #print('alfa_m dim=', np.shape(alfa_m)) 
+        #alfa_m = [alfa_i*alfa_j for alfa_i, alfa_j in zip(alfa, alfa.T)]
+        # print('alfa_m dim=', np.shape(alfa_m)) 
+
+        # Objective function
+        sum_tot = 0.5*np.dot(alfa_m, self.P)
+
+        #print('sum_tot dim=', np.shape(sum_tot)) 
+        eq4 = sum_tot - np.sum(alfa)
+        # print(eq4)
+        # Return sum
+        return eq4
 
     # Implements equation 10
     # Takes vector in as a parameter
@@ -62,13 +76,11 @@ class SVM:
     # OUTPUT: scalar, value that should be constrained to zero
     def zerofun(self, alfa):
         product = alfa*self.t
-
-        """if np.sum(product)==0:
-            return np.sum(product)
-        else:
-            print('Equality constraint not fulfilled')"""
-        return np.sum(product)
-
+        return product
+        #if np.sum(product)==0:
+        #    return np.sum(product)
+        #else:
+        #    print('Equality constraint not fulfilled')
 
     # Extracts non zero values and adds indices and values into a dictionary
     # Extracts support vectors referred to as s in lab doc
@@ -96,6 +108,12 @@ class SVM:
         ind_s = [alfa_i*t_i*self.kernel([x, y], x_i) for alfa_i, t_i, x_i in zip(self.zerofunlist[i]['alpha'], self.zerofunlist[i]['targets'], self.zerofunlist[i]['inputs'])] - self.calculate_b(i)
         return ind_s
 
+        
+    #def plot_boundary(self, i):
+     #   xgrid=np.linspace(-50, 50)
+     #   ygrid=np.linspace(-40, 40)
+     #   grid=np.array([[self.indicator(x,y,) for x in xgrid ] for y in ygrid])
+     #   plt.contour(xgrid, ygrid, grid, (-1.0, 0.0, 1.0), colors=('red', 'black', 'blue'), linewidths=(1, 3, 1))
 
     # Implements equation 7
     # Calculate b used in indicator
@@ -112,16 +130,17 @@ class SVM:
     # minimizes objective
     # INPUT:
     # OUTPUT: vector  
-    def minimize(self):
+    def minimize(self, alfa):
         # Constraints
         XC = {'type':'eq', 'fun':self.zerofun}
+        objective = self.objective(alfa)
         # Call to scipy minimize
-        ret = minimize(self.objective, np.zeros(self.N), bounds=self.B, constraints=XC)
+        ret = minimize(objective, np.zeros(self.N), bounds=self.B, constraints=XC)
         if ret['success'] == True: 
             #print("Minimize success") 
             self.alpha = ret['x']
             #print(self.alpha)
-            return (self.alphas)
+            return (self.alpha)
         else:
             print("Minimize did not find a solution")
             return
@@ -141,12 +160,7 @@ def plot_func(class_a, class_b, svm):
     
     plt.axis('equal') # Force same scale on both axes plt.savefig(’svmplot.pdf’) # Save a copy in a file plt .show() # Show the plot on the screen
     plt.show()
-    
-def plot_boundary(svm, i):
-    xgrid=np.linspace(-5, 5)
-    ygrid=np.linspace(-4, 4)
-    grid=np.array([[svm.indicator(x, y, i) for x in xgrid ] for y in ygrid])
-    plt.contour(xgrid, ygrid, grid, (-1.0, 0.0, 1.0), colors=('red', 'black', 'blue'), linewidths=(1, 3, 1))
+
     
     
 def main():
@@ -168,61 +182,55 @@ def main():
     # Each datapoint in inputs has an x and y value
     x = inputs[:, 0]
     y = inputs[:, 1]
+    #print(x)
+    #print(y)
 
-    s = x
-    t_s = targets
-    N = targets.shape[0]
+    #s = x
+    #t_s = targets
+    #N = targets.shape[0]
     alfa = np.zeros(x.shape[0]).reshape(x.shape[0], 1)
     alfa1 = np.arange(N).reshape(N,1)
 
     svm = SVM(0.5, inputs, targets, "linear")
+    C = 10
+    B=[(0, C) for b in range(N)]
+    start=np.zeros(N)
+    XC = {'type':'eq', 'fun':svm.zerofun}
+    alpha = svm.minimize(alfa)
 
-<<<<<<< HEAD
-    #temp1 = alfa*t_s
-    #print(inputs[0:2, 0:2])
-    #print(np.dot(inputs[0:2, 0:2].T, inputs[0:2, 0:2]))
-    b = svm.calculate_b(alfa, s, t_s)
+    #svm.minimize()
+    #svm.objective(alfa)
+    #print("alfa:", alfa1)
+    #print("targets:", targets, "sum of targets", np.sum(targets))
+    #print("inputs:", inputs)
 
-    n = svm.nonZeroExtract(alfa)
-    print(n)
-    m = svm.zerofun(alfa)
-    print(m)
-    #print(d)
-    d = svm.calculate_b(alfa, s, t_s)
-    svm.nonZeroExtract(np.arange(40))
-    #svm.nonZeroExtract(np.arange(40))
-    #svm.nonZeroExtract(np.arange(40))
-    #print(len(svm.zerofunlist))
-    
-
- 
-
-=======
-    print("alfa:", alfa1)
-    print("targets:", targets, "sum of targets", np.sum(targets))
-    print("inputs:", inputs)
     # Test zerofun
-    print("zerofun:", svm.zerofun(alfa))
+    #print("zerofun:", svm.zerofun(alfa))
+
     # Test nonZeroExtract
-    print("nonZeroExtract:", svm.nonZeroExtract(np.arange(10)))
-    print("Nonzerolist:", svm.zerofunlist)
+    #print("nonZeroExtract:", svm.nonZeroExtract(np.arange(10)))
+    #print("Nonzerolist:", svm.zerofunlist)
+
     # Test Kernel
-    print("Kernel:", svm.kernel(inputs[0, :], inputs[1, :]),"of point a:", inputs[0, :], "and b:", inputs[1, :])
+    #print("Kernel:", svm.kernel(inputs[0, :], inputs[1, :]),"of point a:", inputs[0, :], "and b:", inputs[1, :])
+
     # Test objective
-    print("Objective:", svm.objective(alfa1))
+    #print("Objective:", svm.objective(alfa1))
+
     # Test indicator
-    indicator = svm.indicator(1, 2, 0)
-    print("Indicator", indicator)
-    print(indicator.shape)
-    print(np.sum(indicator))
+    #indicator = svm.indicator(1, 2, 0)
+    #print("Indicator", indicator)
+    #print(indicator.shape)
+    #print(np.sum(indicator))
+
     # Test calculate_b
-    print("calculate_b is done")
+    #print("calculate_b is done")
+
     # Test minimize 
-    svm.minimize()
+    #svm.minimize()
 
     # plot_func(class_a, class_b, svm)
-    plot_boundary(svm, 0)
->>>>>>> 462469151bd57007b3a65979ccf8adbdbc48c39a
+    # svm.plot_boundary(2)
 
 if __name__ == "__main__":
     main()
