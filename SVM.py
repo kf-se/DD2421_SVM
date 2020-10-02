@@ -48,7 +48,6 @@ class SVM:
     # def start(self):
         # return np.zeros(self.N)
 
-
     # Implements equation 4
     # Used in minimize
     # INPUT: vector
@@ -56,17 +55,21 @@ class SVM:
     def objective(self, alfa):
         # Alpha values matrix
 
-        alfa_m = np.dot(alfa, alfa.T)                
+        #alfa_m = np.dot(alfa, alfa.T)                
         #print('alfa_m dim=', np.shape(alfa_m)) 
         #alfa_m = [alfa_i*alfa_j for alfa_i, alfa_j in zip(alfa, alfa.T)]
         # print('alfa_m dim=', np.shape(alfa_m)) 
 
         # Objective function
-        sum_tot = 0.5*np.dot(alfa_m, self.P)
+        sum_tot = np.dot(alfa, np.dot(alfa, self.P))
 
         #print('sum_tot dim=', np.shape(sum_tot)) 
-        eq4 = sum_tot - np.sum(alfa)
-        # print(eq4)
+        alpha_sum = np.sum(alfa)
+        #print("alpha_sum=", alpha_sum)
+        #eq4 = 0.5*np.sum(sum_tot) - np.sum(alfa)
+        eq4 = 0.5*sum_tot - np.sum(alfa)
+        #print('eq4=', np.shape(eq4)) 
+        print(eq4)
         # Return sum
         return eq4
 
@@ -192,14 +195,14 @@ def main():
     alfa1 = np.arange(N).reshape(N,1)
 
     svm = SVM(0.5, inputs, targets, "linear")
-    C = 10
-    B=[(0, C) for b in range(N)]
-    start=np.zeros(N)
-    XC = {'type':'eq', 'fun':svm.zerofun}
-    alpha = svm.minimize(alfa)
+    # C = 10
+    # B=[(0, C) for b in range(N)]
+    # start=np.zeros(N)
+    # XC = {'type':'eq', 'fun':svm.zerofun}
+    # alpha = svm.minimize(alfa)
 
     #svm.minimize()
-    #svm.objective(alfa)
+    svm.objective(alfa)
     #print("alfa:", alfa1)
     #print("targets:", targets, "sum of targets", np.sum(targets))
     #print("inputs:", inputs)

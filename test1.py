@@ -78,6 +78,7 @@ def indicator(sv, alphas, inputs, targets, b):
     for i in range(len(alphas)):
         sm += alphas[i]*targets[i]*kernel(sv,inputs[i])
     sm -= b
+    #print(sm)
     return sm
 
 if __name__ == "__main__":
@@ -137,7 +138,7 @@ if __name__ == "__main__":
     red_patch = mpatches.Patch(color='red', label='ClassB')
     black_patch = mpatches.Patch(color='black', label='Decision Boundry')
     plt.legend(handles=[blue_patch, red_patch, black_patch])
-
+    print(svAlpha)
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.savefig('svmplt.pdf')
