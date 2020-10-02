@@ -35,14 +35,15 @@ class SVM:
     # Implements equations in section 3.3
     def kernel(self, x, y, r=1, p=2, sigma=1):
         # Linear kernel K(x,y) = x' * y
-        # Polynomial kernel K(x,y) = (x' * y + r)^p
-        # Radial Basis Functions kernel K(x,y) = e^-(||x-y||^2 / (2*sigma^2))
         if self.kern == "linear":
             ret = np.dot(x,y)
+        # Polynomial kernel K(x,y) = (x' * y + r)^p
         elif self.kern == "poly":
             ret = np.power((np.dot(x, y) + r), p)
+        # Radial Basis Functions kernel K(x,y) = e^-(||x-y||^2 / (2*sigma^2))
         elif self.kern == "rbf":
-            ret = np.exp( -(np.linalg.norm(x-y)**2) / (2*sigma^2) )
+            ret = np.exp( -(np.linalg.norm(x-y)**2) / (2*sigma**2) )
+        
         return ret
 
 
@@ -85,13 +86,18 @@ class SVM:
     # INPUT: vector, result (data after separation)
     # OUTPUT: vector, error (data being missclassified)
     def nonZeroExtract(self):
-        ind = np.where(self.alpha > 1.0e-5)
+        if self.C != None:
+            # Slack
+            ind = np.where((10e-5 < abs(self.alpha)) & (abs(self.alpha) < self.C))
+        else:
+            # No slack
+            ind = np.where(abs(self.alpha) > 10e-5)
     
         dic = {'ind': ind[0],
                 'targets': self.t[ind[0]],
                 'inputs': self.x[ind[0]],
                 'alpha': self.alpha[ind[0]]}
-
+        print(ind)
         self.zerofunlist = dic
         return self.zerofunlist
 
@@ -102,9 +108,18 @@ class SVM:
     # OUTPUT: classification (ind < -1 (class -1) or ind > 1 (class 1))
     def indicator(self, x, y):
         # ind(s) = sum(alfa_i*t_i*K(s, x_i) - b)
-        ind_s = np.array([alfa_i*t_i*self.kernel([x, y], x_i) - self.calculate_b() for alfa_i, t_i, x_i in zip(self.zerofunlist['alpha'], self.zerofunlist['targets'], self.zerofunlist['inputs'])]) 
+        #ind_s = np.array([alfa_i*t_i*self.kernel([x, y], x_i) - self.calculate_b() for alfa_i, t_i, x_i in zip(self.zerofunlist['alpha'], self.zerofunlist['targets'], self.zerofunlist['inputs'])]) 
         #print(ind_s.shape)
-        return np.sum(ind_s)
+        ind_s = 0
+        #print("alfa", self.zerofunlist['alpha'][0])
+        for i in range(self.zerofunlist['alpha'].shape[0]):
+            alpha = self.zerofunlist['alpha'][i]
+            t = self.zerofunlist['targets'][i]
+            sv = self.zerofunlist['inputs'][i]
+            ind_s += alpha*t*self.kernel([x, y], sv) 
+        
+        ret = np.sum(ind_s) - self.calculate_b()
+        return ret
 
 
     # Implements equation 7
@@ -116,7 +131,16 @@ class SVM:
         # alfa_i*t_i
         b_list = np.array([[a_i*t_i*self.kernel(s_j, x_i) - ts_j for a_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s_j, ts_j in zip(self.zerofunlist['inputs'], self.zerofunlist['targets'])])
         b = np.sum(b_list)
-        return b
+
+        b2 = 0
+        for i in range(self.zerofunlist['alpha'].shape[0]):
+            alpha = self.zerofunlist['alpha'][i]
+            t = self.zerofunlist['targets'][i]
+            sv = self.zerofunlist['inputs'][i]
+            b2 += alpha*t*self.kernel(sv, self.zerofunlist['inputs'][0]) 
+
+        #print(b)
+        return b2
 
 
     # minimizes objective
@@ -147,22 +171,17 @@ def plot_func(class_a, class_b, svm):
     
     plt.axis('equal') # Force same scale on both axes plt.savefig(’svmplot.pdf’) # Save a copy in a file plt .show() # Show the plot on the screen
     
-    
     #if(pltshow = True):
     xgrid=np.linspace(-5, 5)
     ygrid=np.linspace(-4, 4)
-    print([x for x in xgrid ])
-    #print("grid", len([[svm.indicator(x, y) for x in xgrid ] for y in ygrid]))
-    grid=np.array([[svm.indicator(x, y) for x in xgrid ] for y in ygrid])
-    #print(grid)
-    #grid=np.array([[svm.indicator(x, y), svm.zerofunlist['alpha'], svm.zerofunlist['inputs'], svm.zerofunlist['targets'] for x in xgrid ] for y in ygrid])
+    grid=np.array([[svm.indicator(x, y) for x in xgrid ] for y in ygrid]).reshape(len(xgrid), len(xgrid))
+    #print("xgrid", xgrid,"\nygrid", ygrid,"\ngrid", grid.shape)
     plt.contour(xgrid, ygrid, grid, (-1.0, 0.0, 1.0), colors=('red', 'black', 'blue'), linewidths=(1, 3, 1))
     
     plt.show()
     
 def main():
     # Data generation
-
     np.random.seed(100)
     class_a = np.concatenate((np.random.randn(10, 2)*0.2 + [1.5, 0.5], 
                                 np.random.randn(10, 2)*0.2 + [-1.5, 0.5]))
@@ -187,9 +206,10 @@ def main():
     alfa = np.zeros(x.shape[0]).reshape(x.shape[0], 1)
     alfa1 = np.arange(N).reshape(N,1)
 
-    svm2 = SVM(None, inputs, targets, "linear")
+    svm2 = SVM(10000000, inputs, targets, "linear")
     ret = svm2.minimize()
     svm2.nonZeroExtract()
+    print("zerofun", svm2.zerofunlist['alpha'])
     #print(svm2.zerofunlist['targets'])
     #print(svm2.zerofunlist)
     #svm2.calculate_b()
