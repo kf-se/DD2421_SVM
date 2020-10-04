@@ -132,8 +132,8 @@ class SVM:
     def calculate_b(self):
         # sum(alfa_i*t_i*K(s, x) - t_s)
         # alfa_i*t_i
-        b_list = np.array([[a_i*t_i*self.kernel(s_j, x_i) - ts_j for a_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s_j, ts_j in zip(self.zerofunlist['inputs'], self.zerofunlist['targets'])])
-        b = np.sum(b_list)
+        #b_list = np.array([[a_i*t_i*self.kernel(s_j, x_i) - ts_j for a_i, t_i, x_i in zip(self.alpha, self.t, self.x)] for s_j, ts_j in zip(self.zerofunlist['inputs'], self.zerofunlist['targets'])])
+        #b = np.sum(b_list)
 
         b2 = 0
         for i in range(self.zerofunlist['alpha'].shape[0]):
@@ -169,26 +169,26 @@ def plot_func(class_a, class_b, svm, C):
     for p in class_b:
         plt.plot(p[0],p[1],'r.')
 
-    for p in svm.zerofunlist['inputs']:
-        plt.plot(p[0], p[1], 'g+')
+    #for p in svm.zerofunlist['inputs']:
+    #    plt.plot(p[0], p[1], 'g+')
     
     plt.axis('equal') # Force same scale on both axes plt.savefig(’svmplot.pdf’) # Save a copy in a file plt .show() # Show the plot on the screen
     
     #if(pltshow = True):
-    figure = plt.show()
+    
     xgrid=np.linspace(-5, 5)
     ygrid=np.linspace(-4, 4)
     grid=np.array([[svm.indicator(x, y) for x in xgrid ] for y in ygrid]).reshape(len(xgrid), len(xgrid))
     #print("xgrid", xgrid,"\nygrid", ygrid,"\ngrid", grid.shape)
-    figure.contour(xgrid, ygrid, grid, (-1.0, 0.0, 1.0), colors=('red', 'black', 'blue'), linewidths=(1, 3, 1))
-    figure.legend(C)
+    plt.contour(xgrid, ygrid, grid, (-1.0, 0.0, 1.0), colors=('red', 'black', 'blue'), linewidths=(1, 3, 1))
     plt.show()
     
 def main():
     # Data generation
     np.random.seed(100)
-    class_a = np.concatenate((np.random.randn(10, 2)*0.2 + [1.5, 0.5], 
-                                np.random.randn(10, 2)*0.2 + [-1.5, 0.5]))
+    spread = 0.8
+    class_a = np.concatenate((np.random.randn(10, 2)*spread + [1.5, 0.5], 
+                                np.random.randn(10, 2)*spread + [-1.5, 0.5]))
     class_b = np.random.randn(20, 2) * 0.2 + [0, -0.5]
     
     inputs = np.concatenate((class_a, class_b))
@@ -209,7 +209,7 @@ def main():
     N = targets.shape[0]
     alfa = np.zeros(x.shape[0]).reshape(x.shape[0], 1)
     alfa1 = np.arange(N).reshape(N,1)
-    C = None
+    C = 1
 
     svm2 = SVM(C, inputs, targets, "linear", 1, 9, 1)
     
