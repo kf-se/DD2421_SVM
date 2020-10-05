@@ -186,10 +186,40 @@ def plot_func(class_a, class_b, svm, C):
 def main():
     # Data generation
     np.random.seed(100)
-    spread = 0.8
-    class_a = np.concatenate((np.random.randn(10, 2)*spread + [1.5, 0.5], 
-                                np.random.randn(10, 2)*spread + [-1.5, 0.5]))
-    class_b = np.random.randn(20, 2) * 0.2 + [0, -0.5]
+    
+    def data0():
+        # Normal
+        spread = 0.2
+        class_a = np.concatenate((np.random.randn(10, 2)*spread + [1.5, 0.5], 
+                                    np.random.randn(10, 2)*spread + [-1.5, 0.5]))
+        class_b = np.random.randn(20, 2) * 0.2 + [0, -0.5]
+        return class_a, class_b
+    
+    def data1():
+        # Slightly scattered
+        spread = 0.5
+        class_a = np.concatenate((np.random.randn(10, 2)*spread + [1.5, 0.5], 
+                                    np.random.randn(10, 2)*spread + [-1.5, 0.5]))
+        class_b = np.random.randn(20, 2) * 0.2 + [-1, 0.5]
+        return class_a, class_b
+    
+    def data2():
+        # Massively scattered
+        spread = 0.8
+        class_a = np.concatenate((np.random.randn(10, 2)*spread + [1.5, 0.5], 
+                                    np.random.randn(10, 2)*spread + [-1.5, 0.5]))
+        class_b = np.random.randn(20, 2) * spread + [-1, 0.5]
+        return class_a, class_b
+    
+    class_a, class_b = data1()
+    
+    for p in class_a:
+        plt.plot(p[0],p[1],'b.')
+
+    for p in class_b:
+        plt.plot(p[0],p[1],'r.')
+
+    plt.show()
     
     inputs = np.concatenate((class_a, class_b))
     targets = np.concatenate((np.ones(class_a.shape[0]), -np.ones(class_b.shape[0])))
@@ -209,14 +239,23 @@ def main():
     N = targets.shape[0]
     alfa = np.zeros(x.shape[0]).reshape(x.shape[0], 1)
     alfa1 = np.arange(N).reshape(N,1)
-    C = 1
+    C = None
 
-    svm2 = SVM(C, inputs, targets, "linear", 1, 9, 1)
+    def upg3():
+        C = None
+        svm2 = SVM(C, inputs, targets, "linear", 1, 2, 1)
+        return svm2
     
-    ret = svm2.minimize()
-    svm2.nonZeroExtract()
-    print("zerofun", svm2.zerofunlist['alpha'])
-    plot_func(class_a, class_b, svm2, C)
+    def upg4():
+        svm2 = SVM(C, inputs, targets, "poly", 10, 5, 0.1)
+        return svm2
+
+    
+    svm = upg4()
+    ret = svm.minimize()
+    svm.nonZeroExtract()
+    print("zerofun", svm.zerofunlist['alpha'])
+    plot_func(class_a, class_b, svm, C)
 
 
 if __name__ == "__main__":
