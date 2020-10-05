@@ -50,10 +50,6 @@ class SVM:
         return ret
 
 
-    def start(self):
-        return np.zeros(self.N)
-
-
     # Implements equation 4
     # Used in minimize
     # INPUT: vector
@@ -71,9 +67,9 @@ class SVM:
                 p += alfa[i]*alfa[j]*self.P[i][j]
         ret1 = 0.5*p - np.sum(alfa)
         
-        ret2 = 0.5*np.dot(alfa, np.dot(self.P, alfa)) - np.sum(alfa)
+        ret2 = 0.5*np.dot(alfa, np.dot(alfa, self.P)) - np.sum(alfa)
         # Return sum
-        return ret1
+        return ret2
 
 
     # Implements equation 10
@@ -163,12 +159,19 @@ class SVM:
         
 
 def plot_func(class_a, class_b, svm, C):
+    #plt.subplot(2,1,1)
+    plt.figure(1)
     for p in class_a:
         plt.plot(p[0],p[1],'b.')
-
     for p in class_b:
         plt.plot(p[0],p[1],'r.')
-
+    plt.draw()
+    plt.figure(2)
+    #plt.subplot(2,1,2)
+    for p in class_a:
+        plt.plot(p[0],p[1],'b.')
+    for p in class_b:
+        plt.plot(p[0],p[1],'r.')
     #for p in svm.zerofunlist['inputs']:
     #    plt.plot(p[0], p[1], 'g+')
     
@@ -210,17 +213,15 @@ def main():
                                     np.random.randn(10, 2)*spread + [-1.5, 0.5]))
         class_b = np.random.randn(20, 2) * spread + [-1, 0.5]
         return class_a, class_b
-    
-    class_a, class_b = data1()
-    
-    for p in class_a:
-        plt.plot(p[0],p[1],'b.')
 
-    for p in class_b:
-        plt.plot(p[0],p[1],'r.')
+    def data4():
+            # Slightly scattered and intermixed
+            class_a = np.concatenate((np.random.randn(10, 2)*0.2 + [-0.5, 0.5], 
+                                        np.random.randn(10, 2)*0.5 + [-1, 1]))
+            class_b = np.random.randn(20, 2)*0.2 + [-1.5, 1]
+            return class_a, class_b
 
-    plt.show()
-    
+    class_a, class_b = data0()
     inputs = np.concatenate((class_a, class_b))
     targets = np.concatenate((np.ones(class_a.shape[0]), -np.ones(class_b.shape[0])))
 
@@ -229,31 +230,25 @@ def main():
     random.shuffle(permute)
     inputs = inputs[permute, :]
     targets = targets[permute]
-
-    # Each datapoint in inputs has an x and y value
-    x = inputs[:, 0]
-    y = inputs[:, 1]
-
-    s = x
-    t_s = targets
-    N = targets.shape[0]
-    alfa = np.zeros(x.shape[0]).reshape(x.shape[0], 1)
-    alfa1 = np.arange(N).reshape(N,1)
     C = None
 
     def upg3():
-        C = None
         svm2 = SVM(C, inputs, targets, "linear", 1, 2, 1)
         return svm2
     
     def upg4():
-        svm2 = SVM(C, inputs, targets, "poly", 10, 5, 0.1)
+        svm2 = SVM(C, inputs, targets, "poly", 1, 4, 0.1)
         return svm2
 
-    
-    svm = upg4()
-    ret = svm.minimize()
+    def upg5():
+        svm2 = SVM(C, inputs, targets, "rbf", 10, 5, 1)
+        return svm2
+
+
+    svm = upg5()
+    svm.minimize()
     svm.nonZeroExtract()
+    print(C)
     print("zerofun", svm.zerofunlist['alpha'])
     plot_func(class_a, class_b, svm, C)
 
